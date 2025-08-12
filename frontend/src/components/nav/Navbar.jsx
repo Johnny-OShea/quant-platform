@@ -103,7 +103,7 @@ export default function Navbar() {
                     <div className={styles.pushRight} />
 
                     {/* Primary call to action */}
-                    <GradientButton href="/signup">SIGN UP</GradientButton>
+                    <GradientButton href="/register">SIGN UP</GradientButton>
                 </div>
             </nav>
         </header>
