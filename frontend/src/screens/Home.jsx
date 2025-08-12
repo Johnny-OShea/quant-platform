@@ -1,8 +1,8 @@
-function Home() {
+export default function Home() {
     return (
-        <div>
-        </div>
+        <section>
+            <h1>Home</h1>
+            {/* your home content */}
+        </section>
     );
 }
-
-export default Home;

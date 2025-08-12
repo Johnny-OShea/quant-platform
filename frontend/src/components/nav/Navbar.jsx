@@ -20,6 +20,7 @@
  * - Clicking outside a dropdown closes it.
  */
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import BrandImage from "../../assets/logo.svg";
 import GradientButton from "../ui/GradientButton";
 import Dropdown from "../ui/Dropdown";
@@ -42,24 +43,22 @@ export default function Navbar() {
     const [mobileOpen, setMobileOpen] = useState(false);
 
     const product = [
-        { label: "Overview", href: "/product" },
-        { label: "Backtesting", href: "/product/backtesting", desc: "Prototype strategies safely" },
-        { label: "Automation", href: "/product/automation", desc: "Deploy bots & alerts" },
+        { label: "Overview", to: "/product" },
+        { label: "Backtesting", to: "/product/backtesting", desc: "Prototype strategies safely" },
+        { label: "Automation", to: "/product/automation", desc: "Deploy bots & alerts" },
     ];
 
     const learn = [
-        { label: "Academy", href: "/learn/academy" },
-        { label: "Guides", href: "/learn/guides" },
-        { label: "Blog", href: "/learn/blog" },
+        { label: "Academy", to: "/learn/academy" },
+        { label: "Guides", to: "/learn/guides" },
+        { label: "Blog", to: "/learn/blog" },
     ];
 
-    const company = [
-        { label: "About", href: "/company/about" },
-    ];
+    const company = [{ label: "About", to: "/company/about" }];
 
     const help = [
-        { label: "Docs", href: "/help/docs" },
-        { label: "Support", href: "/help/support" },
+        { label: "Docs", to: "/help/docs" },
+        { label: "Support", to: "/help/support" },
     ];
 
     return (
@@ -68,7 +67,7 @@ export default function Navbar() {
             <nav className={styles.nav} aria-label="Primary">
 
                 {/* Brand (clicking returns home) */}
-                <a href="/" className={styles.brand}>
+                <Link to="/" className={styles.brand}>
 
                     {/* Brand logo */}
                     <span className={styles.brandIcon} aria-hidden="true">
@@ -77,7 +76,7 @@ export default function Navbar() {
 
                     {/* Brand name */}
                     <span className={styles.brandText}>React</span>
-                </a>
+                </Link>
 
                 {/* Mobile hamburger toggle */}
                 <button
@@ -103,7 +102,7 @@ export default function Navbar() {
                     <div className={styles.pushRight} />
 
                     {/* Primary call to action */}
-                    <GradientButton href="/register">SIGN UP</GradientButton>
+                    <GradientButton to="/register">SIGN UP</GradientButton>
                 </div>
             </nav>
         </header>

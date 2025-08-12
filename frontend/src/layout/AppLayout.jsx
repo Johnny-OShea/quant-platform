@@ -1,16 +1,13 @@
+import { Outlet } from "react-router-dom";
 import Navbar from "../components/nav/Navbar";
 
-/**
- *
- * @param children
- * @returns {JSX.Element}
- * @constructor
- */
-export default function AppLayout({ children }) {
+export default function AppLayout() {
     return (
         <>
             <Navbar />
-            <main>{children}</main>
+            <main>
+                <Outlet />
+            </main>
         </>
     );
 }

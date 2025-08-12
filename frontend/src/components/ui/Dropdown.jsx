@@ -1,27 +1,17 @@
-import {useRef, useState} from "react";
+import { useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import styles from "./dropdown.module.css";
 import useOnClickOutside from "../../hooks/DropdownHook.jsx";
 import Chevron from "./Chevron.jsx";
 
-
 /**
- * Dropdown
- * --------
- * WHAT: A button that reveals a small menu with links.
- *
- * HOW:
- *  <Dropdown
- *    label="Product"
- *    items={[{ label: "Overview", href: "/product" }, { label: "Docs", href: "/docs", desc: "API & Guides" }]}
- *  />
- *
- * UX NOTES:
- * - Click the label to toggle.
- * - Escape closes.
- * - ArrowDown focuses the first actionable item.
- * - Clicking outside closes (via useOnClickOutside).
+ * items: Array<{
+ *   label: string,
+ *   to: string,
+ *   desc?: string
+ * }>
  */
-function Dropdown({ label, items }) {
+function Dropdown({ label, items, onItemSelect }) {
     const [open, setOpen] = useState(false);
     const ref = useRef(null);
     useOnClickOutside(ref, () => setOpen(false));
@@ -29,11 +19,15 @@ function Dropdown({ label, items }) {
     function onKeyDown(e) {
         if (e.key === "Escape") setOpen(false);
         if (e.key === "ArrowDown" && ref.current) {
-            // Move focus to first menu item for keyboard users
             const first = ref.current.querySelector("a,button,[tabindex='0']");
             first && first.focus();
         }
     }
+
+    const handleSelect = () => {
+        setOpen(false);
+        onItemSelect?.();
+    };
 
     return (
         <div className={styles.dropdown} ref={ref}>
@@ -41,7 +35,7 @@ function Dropdown({ label, items }) {
                 className={styles.navBtn}
                 aria-haspopup="menu"
                 aria-expanded={open}
-                onClick={() => setOpen((o) => !o)}
+                onClick={() => setOpen(o => !o)}
                 onKeyDown={onKeyDown}
             >
                 {label}
@@ -51,16 +45,16 @@ function Dropdown({ label, items }) {
             {open && (
                 <div className={styles.menu} role="menu" aria-label={label}>
                     {items.map((it) => (
-                        <a
+                        <Link
                             key={it.label}
-                            href={it.href}
+                            to={it.to}
                             role="menuitem"
                             className={styles.menuItem}
-                            onClick={() => setOpen(false)}
+                            onClick={handleSelect}
                         >
                             <div className={styles.menuTitle}>{it.label}</div>
                             {it.desc && <div className={styles.menuDesc}>{it.desc}</div>}
-                        </a>
+                        </Link>
                     ))}
                 </div>
             )}
