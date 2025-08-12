@@ -1,0 +1,25 @@
+:root {
+    /* Colors */
+    --bg: #0b0b0c;
+    --surface: rgba(13, 13, 15, 0.7);
+    --stroke: rgba(255, 255, 255, 0.08);
+    --text: #e8e8ef;
+    --muted: #b3b3c2;
+
+    /* Brand gradient */
+    --brand-start: #36a2da;
+    --brand-end: #ef98f3;
+    --brand-shadow-light: rgba(127, 236, 234, 0.35);
+    --brand-shadow-dark: rgba(127, 236, 234, 0.55);
+
+    /* Effects */
+    --blur: 10px;
+    --shadow-lg: 0 8px 30px rgba(0,0,0,0.35);
+
+    /* Spacing & radius */
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-6: 24px;
+    --radius-xl: 14px;
+}

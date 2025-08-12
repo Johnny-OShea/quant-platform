@@ -1,15 +1,11 @@
-import { useEffect, useState } from "react";
+import AppLayout from "./layout/AppLayout";
+import Home from "./screens/Home";
 
 function App() {
-  const [message, setMessage] = useState("");
-
-  useEffect(() => {
-    fetch("/api/hello")
-        .then(res => res.json())
-        .then(data => setMessage(data.message));
-  }, []);
-
-  return <h1>{message || "Loading..."}</h1>;
+    return (
+        <AppLayout>
+            <Home />
+        </AppLayout>
+    );
 }
-
 export default App;

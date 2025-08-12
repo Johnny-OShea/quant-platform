@@ -1,0 +1,110 @@
+/* The entire top row */
+.header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+}
+
+/* A smaller rectangle within the header, this is
+ where the content of the navbar goes
+*/
+.nav {
+    display: flex;
+    align-items: center;
+    gap: var(--space-6);
+    padding: 12px 20px;
+    background: var(--surface);
+    -webkit-backdrop-filter: blur(var(--blur));
+    backdrop-filter: blur(var(--blur));
+    border-bottom: 1px solid var(--stroke);
+    box-shadow: var(--shadow-lg);
+}
+
+/*
+ Leftmost section of the navbar. Contains the brand image
+ and the title
+*/
+.brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+    letter-spacing: 0;
+}
+
+/* The brand image */
+.brandIcon {
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
+    border-radius: 6px;
+    background: linear-gradient(135deg, var(--brand-start), var(--brand-end));
+}
+
+/* Brand name */
+.brandText {
+    font-size: 32px;
+    background-image: linear-gradient(var(--brand-start), var(--brand-end));
+    color: transparent;
+    background-clip: text;
+}
+
+/* Links area. This holds the links and the sign up button */
+.links {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    flex: 1;
+}
+
+/* Move the sign up button all the way right */
+.pushRight { margin-left: auto; }
+
+/* */
+.navBtn {
+    font-size: 0.95rem;
+    color: var(--text);
+    opacity: 0.9;
+}
+
+.navBtn:hover { opacity: 1; }
+
+/* Mobile */
+.burger {
+    display: none;
+    position: relative;
+    width: 34px;
+    height: 28px;
+    background: transparent;
+    border: 0;
+    margin-left: auto;
+}
+.burger span {
+    position: absolute;
+    left: 0; right: 0;
+    height: 2px;
+    background: var(--text);
+    border-radius: 1px;
+}
+.burger span:nth-child(1) { top: 4px; }
+.burger span:nth-child(2) { top: 13px; }
+.burger span:nth-child(3) { bottom: 4px; }
+
+/* Mobile overrides */
+@media (max-width: 900px) {
+    .burger { display: inline-block; }
+    .links {
+        position: absolute;
+        left: 0; right: 0; top: 60px;
+        padding: 12px 20px 18px;
+        background: #0f1013;
+        border-bottom: 1px solid var(--stroke);
+        display: none;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+    .linksOpen { display: flex; }
+    .pushRight { display: none; }
+}

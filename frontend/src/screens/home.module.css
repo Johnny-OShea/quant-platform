@@ -1,0 +1,8 @@
+.wrap {
+    display: block;
+}
+
+@media (max-width: 900px) {
+    .grid { grid-template-columns: 1fr; }
+    .hero { padding: 64px 16px 32px; }
+}

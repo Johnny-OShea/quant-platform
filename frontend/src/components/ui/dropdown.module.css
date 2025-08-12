@@ -1,0 +1,56 @@
+/* Dropdowns */
+.dropdown { position: relative; }
+
+/* ensure it inherits the theme color and resets UA styles */
+.navBtn {
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
+    background: transparent;
+    border: 0;
+    padding: 8px 6px;
+    cursor: pointer;
+
+    color: var(--text);
+    font: inherit;
+    opacity: 0.9;
+}
+.navBtn:hover { opacity: 1; }
+
+/* This represents the list of items when expanded */
+.menu {
+    position: absolute;
+    top: calc(100% + 10px);
+    left: 0;
+    min-width: 240px;
+    background: #121216;
+    border: 1px solid var(--stroke);
+    border-radius: 12px;
+    padding: 8px;
+    box-shadow: var(--shadow-lg);
+}
+
+/* Each item in a dropdown */
+.menuItem {
+    display: block;
+    padding: 10px 12px;
+    border-radius: 10px;
+    color: var(--text);
+}
+.menuItem:hover { background: rgba(255,255,255,0.04); }
+.menuTitle { font-weight: 600; }
+.menuDesc  { font-size: 0.85rem; color: var(--muted); }
+
+/* --- Mobile overrides --- */
+@media (max-width: 900px) {
+    /* On mobile, let the menu flow in the links column */
+    .menu {
+        position: static;
+        top: auto; left: auto;
+        box-shadow: none;
+        border: 0;
+        padding: 0;
+        background: transparent;
+    }
+    .menuItem:hover { background: rgba(255,255,255,0.06); }
+}
