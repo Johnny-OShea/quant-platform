@@ -2,8 +2,15 @@ import styles from "./sign-in.module.css";
 import { useSignInForm } from "../hooks/AuthHook";
 import { LuEyeClosed } from "react-icons/lu";
 import { FaRegEye } from "react-icons/fa";
+import {useAuth} from "../context/AuthContext";
+import {useNavigate} from "react-router-dom";
 
 function SignIn() {
+
+    // Sign in auth
+    const {signIn} = useAuth();
+    const navigate = useNavigate();
+
     const {
         values,
         errors,
@@ -17,6 +24,10 @@ function SignIn() {
     } = useSignInForm({
         initialValues: { email: "", password: "" },
         endpoint: "http://localhost:5000/api/login",
+        onSuccess: (resp) => {
+            signIn(resp.data);
+            navigate("/", { replace: true });
+        },
     });
 
     return (

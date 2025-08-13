@@ -7,6 +7,7 @@ function useAuthFormBase({
                              validate,
                              successMessage = "OK",
                              mapRequest = (v) => v,
+                             onSuccess,
                          }) {
     const [values, setValues] = useState(initialValues);
     const [errors, setErrors] = useState({});
@@ -52,6 +53,8 @@ function useAuthFormBase({
 
             setMessage(data?.message || successMessage);
             setStatus("success");
+
+            onSuccess && onSuccess(data)
         } catch (err) {
             setMessage(err.message || "Something went wrong");
             setStatus("error");
@@ -94,20 +97,22 @@ function validateSignIn(values) {
 }
 
 /** ---------- Public hooks ---------- */
-export function useRegisterForm({ initialValues, endpoint }) {
+export function useRegisterForm({ initialValues, endpoint, onSuccess }) {
     return useAuthFormBase({
         initialValues,
         endpoint,
         validate: validateRegister,
         successMessage: "Account created!",
+        onSuccess,
     });
 }
 
-export function useSignInForm({ initialValues, endpoint }) {
+export function useSignInForm({ initialValues, endpoint, onSuccess }) {
     return useAuthFormBase({
         initialValues,
         endpoint,
         validate: validateSignIn,
         successMessage: "Signed in!",
+        onSuccess,
     });
 }

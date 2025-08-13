@@ -2,8 +2,14 @@ import styles from "./register.module.css";
 import {useRegisterForm} from "../hooks/AuthHook";
 import {FaRegEye} from "react-icons/fa";
 import {LuEyeClosed} from "react-icons/lu";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 function Register() {
+
+    // Sign in auth
+    const {signIn} = useAuth();
+    const navigate = useNavigate();
 
     // Obtain all necessary values from the AuthHook class
     const {
@@ -19,6 +25,10 @@ function Register() {
     } = useRegisterForm({
         initialValues: { username: "", email: "", password: "", terms_policies: false },
         endpoint: "http://localhost:5000/api/users",
+        onSuccess: (resp) => {
+            signIn(resp.data);
+            navigate("/", { replace: true });
+        },
     });
 
     return (

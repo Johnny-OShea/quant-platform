@@ -20,11 +20,12 @@
  * - Clicking outside a dropdown closes it.
  */
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
 import BrandImage from "../../assets/logo.svg";
 import GradientButton from "../ui/GradientButton";
 import Dropdown from "../ui/Dropdown";
 import styles from "./navbar.module.css";
+import {useAuth} from "../../context/AuthContext";
 
 /**
  * Navbar
@@ -39,6 +40,10 @@ import styles from "./navbar.module.css";
  * - Update styles in `navbar.module.css` and global tokens for theme.
  */
 export default function Navbar() {
+
+    const { isAuthed, signOut } = useAuth();
+    const navigate = useNavigate();
+
     // Controls the mobile slide-down panel
     const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -63,46 +68,51 @@ export default function Navbar() {
 
     return (
         <header className={styles.header}>
-            {/* Landmark for screen readers */}
             <nav className={styles.nav} aria-label="Primary">
-
-                {/* Brand (clicking returns home) */}
                 <Link to="/" className={styles.brand}>
-
-                    {/* Brand logo */}
-                    <span className={styles.brandIcon} aria-hidden="true">
-                        <img src={BrandImage} alt={"Brand logo"}></img>
-                    </span>
-
-                    {/* Brand name */}
+          <span className={styles.brandIcon} aria-hidden="true">
+            <img src={BrandImage} alt="Brand logo"/>
+          </span>
                     <span className={styles.brandText}>React</span>
                 </Link>
 
-                {/* Mobile hamburger toggle */}
                 <button
                     className={styles.burger}
                     aria-label="Toggle menu"
                     aria-expanded={mobileOpen}
                     onClick={() => setMobileOpen((o) => !o)}
                 >
-                    <span />
-                    <span />
-                    <span />
+                    <span/>
+                    <span/>
+                    <span/>
                 </button>
 
-                {/* Main links area (becomes a column on mobile) */}
                 <div className={`${styles.links} ${mobileOpen ? styles.linksOpen : ""}`}>
-                    <Dropdown label="Product" items={product}></Dropdown>
-                    <Dropdown label="Pricing" items={product}></Dropdown>
-                    <Dropdown label="Learn" items={learn} />
-                    <Dropdown label="Company" items={company} />
-                    <Dropdown label="Help" items={help} />
+                    <Dropdown label="Product" items={product}/>
+                    <Dropdown label="Pricing" items={product}/>
+                    <Dropdown label="Learn" items={learn}/>
+                    <Dropdown label="Company" items={company}/>
+                    <Dropdown label="Help" items={help}/>
 
-                    {/* pushes the sign-up button to the right on wide screens */}
-                    <div className={styles.pushRight} />
+                    <div className={styles.pushRight}/>
 
-                    {/* Primary call to action */}
-                    <GradientButton to="/register">SIGN UP</GradientButton>
+                    {!isAuthed ? (
+                        <>
+                            <GradientButton to="/register">SIGN UP</GradientButton>
+                        </>
+                    ) : (
+                        <>
+                            <GradientButton
+                                onClick={() => {
+                                    signOut();
+                                    navigate("/");
+                                }}
+                                aria-label="Sign out"
+                            >
+                                Logout
+                            </GradientButton>
+                        </>
+                    )}
                 </div>
             </nav>
         </header>
