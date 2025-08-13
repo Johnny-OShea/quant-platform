@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from services.user_service import create_user, get_user_info
+from services.user_service import create_user, login_user
 
 user_bp = Blueprint("user_bp", __name__)
 
@@ -32,10 +32,23 @@ def register_user():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@user_bp.route("/api/users/<username>", methods=["GET"])
-def fetch_user(username):
-    user = get_user_info(username)
-    if user:
-        return jsonify(user)
-    else:
-        return jsonify({"error": "User not found"}), 404
+@user_bp.route("/api/login", methods=["POST"])
+def sign_in():
+    data = request.get_json()
+
+    result = login_user(data.get("email"), data.get("password"))
+
+    # Success
+    if result["success"]:
+        return jsonify(result), 200
+
+    # There was an error, what is the code
+    code = result.get("error", {}).get("code")
+    if code == "BAD_REQUEST":
+        return jsonify(result), 400
+    if code == "INVALID_CREDENTIALS":
+        return jsonify(result), 401
+    if code == "USER_NOT_FOUND":
+        return jsonify(result), 404
+    # outlier error
+    return jsonify(result), 500

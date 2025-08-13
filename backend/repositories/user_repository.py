@@ -32,11 +32,25 @@ def insert_user(username: str, email: str, hashed_password: str) -> int:
         cur.close()
         conn.close()
 
-def find_user_by_username(username):
+def find_user_by_email(email: str):
+    """
+    Using a specified email, we will retrieve the user from the database
+    this will return all the information about the specified user
+    """
+
+    # Set up the connection
     conn = get_db_connection()
     cur = conn.cursor(dictionary=True)
-    cur.execute("SELECT id, username, email, password FROM users WHERE username = %s", (username,))
-    user = cur.fetchone()
-    cur.close()
-    conn.close()
-    return user
+
+    # Try to get the user by email
+    try:
+        cur.execute(
+            "SELECT id, username, email, password FROM users WHERE email = %s",
+            (email,)
+        )
+        # Return if found
+        return cur.fetchone()
+    # Close the connection
+    finally:
+        cur.close()
+        conn.close()

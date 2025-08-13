@@ -1,7 +1,7 @@
 from typing import Optional, Dict, Any
-from werkzeug.security import generate_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
 from mysql.connector import errorcode, IntegrityError
-from repositories.user_repository import insert_user, find_user_by_username
+from repositories.user_repository import insert_user, find_user_by_email
 
 def _response(success: bool, message: str, data = None, error = None):
     """
@@ -64,11 +64,40 @@ def create_user(username: str, email: str, password: str) -> Dict[str, Any]:
         # Unknown DB error
         return _response(False, "Database error", error={"code": "DB_ERROR"})
 
-def get_user_info(username):
-    user = find_user_by_username(username)
-    if user:
-        # Do not expose the hashed password in the response
-        user.pop("password", None)
-        return user
-    else:
-        return None
+def login_user(email: str, password: str) -> Dict[str, Any]:
+    # If there is no email/password, return error
+    if not password or not email:
+        return _response(
+            False,
+            "Missing credentials",
+            error={"code": "BAD_REQUEST"}
+        )
+
+    # Create a null user
+    user = None
+    # Get the user in the database
+    user = find_user_by_email(email)
+
+    # Check if a user was found
+    if not user:
+        return _response(
+            False,
+            "User not found",
+            error = {"code": "USER_NOT_FOUND"}
+        )
+
+    # For security, respond the same on not-found or wrong password
+    if not check_password_hash(user["password"], password):
+        return _response(
+            False,
+            "Invalid credentials",
+            error = {"code": "INVALID_CREDENTIALS"}
+        )
+
+    # Return the user
+    user_safe = {k: user[k] for k in ("id", "username", "email")}
+    return _response(
+        True,
+        "Logged in",
+        data = user_safe
+    )

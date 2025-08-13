@@ -1,5 +1,7 @@
 import styles from "./register.module.css";
-import { useAuthForm } from "../hooks/AuthHook";
+import {useRegisterForm} from "../hooks/AuthHook";
+import {FaRegEye} from "react-icons/fa";
+import {LuEyeClosed} from "react-icons/lu";
 
 function Register() {
 
@@ -14,7 +16,7 @@ function Register() {
         togglePasswordVisible,
         handleChange,
         handleSubmit,
-    } = useAuthForm({
+    } = useRegisterForm({
         initialValues: { username: "", email: "", password: "", terms_policies: false },
         endpoint: "http://localhost:5000/api/users",
     });
@@ -94,7 +96,7 @@ function Register() {
                                 aria-label={passwordVisible ? "Hide password" : "Show password"}
                                 title={passwordVisible ? "Hide password" : "Show password"}
                             >
-                                {passwordVisible ? "👁" : "👁"}
+                                {passwordVisible ? <FaRegEye /> : <LuEyeClosed />}
                             </button>
                         </div>
                         {errors.password && <div className={styles.errorText}>{errors.password}</div>}
