@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from services.user_service import create_user, login_user
+from services.user_service import create_user, login_user, update_user_profile
 
 user_bp = Blueprint("user_bp", __name__)
 
@@ -51,4 +51,24 @@ def sign_in():
     if code == "USER_NOT_FOUND":
         return jsonify(result), 404
     # outlier error
+    return jsonify(result), 500
+
+@user_bp.route("/api/users/<email>", methods=["PATCH"])
+def patch_user(email):
+
+    # Get the items that need updated from the user
+    payload = request.get_json(silent=True) or {}
+    print(payload)
+    print(email)
+    # Call the service layer
+    result = update_user_profile(email, payload)
+
+    if result["success"]:
+        return jsonify(result), 200
+
+    code = result.get("error", {}).get("code")
+    if code == "NOT_FOUND":
+        return jsonify(result), 404
+    if code == "BAD_REQUEST":
+        return jsonify(result), 400
     return jsonify(result), 500

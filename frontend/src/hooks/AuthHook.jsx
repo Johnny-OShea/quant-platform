@@ -12,7 +12,7 @@ function useAuthFormBase({
     const [values, setValues] = useState(initialValues);
     const [errors, setErrors] = useState({});
     const [message, setMessage] = useState("");
-    const [status, setStatus] = useState("idle"); // idle | success | error
+    const [status, setStatus] = useState("idle");
     const [loading, setLoading] = useState(false);
     const [passwordVisible, setPasswordVisible] = useState(false);
 

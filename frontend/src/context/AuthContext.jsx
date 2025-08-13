@@ -17,7 +17,15 @@ export function AuthProvider({ children }) {
         localStorage.removeItem("authUser");
     };
 
-    const value = useMemo(() => ({ user, isAuthed: !!user, signIn, signOut }), [user]);
+    const updateUser = (patch) => {
+        setUser(prev => {
+            const next = { ...(prev || {}), ...(patch || {}) };
+            try { localStorage.setItem("authUser", JSON.stringify(next)); } catch {}
+            return next;
+        });
+    };
+
+    const value = useMemo(() => ({ user, isAuthed: !!user, signIn, signOut, updateUser }), [user]);
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 

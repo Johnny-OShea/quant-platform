@@ -1,7 +1,7 @@
 from typing import Optional, Dict, Any
 from werkzeug.security import generate_password_hash, check_password_hash
 from mysql.connector import errorcode, IntegrityError
-from repositories.user_repository import insert_user, find_user_by_email
+from repositories.user_repository import insert_user, find_user_by_email, update_user_fields, replace_liked_strategies
 
 def _response(success: bool, message: str, data = None, error = None):
     """
@@ -101,3 +101,91 @@ def login_user(email: str, password: str) -> Dict[str, Any]:
         "Logged in",
         data = user_safe
     )
+
+def update_user_profile(email, payload):
+    """
+    Updates the user's profile to include things like income
+    preferred currency, location, and liked strategies
+    """
+
+    # Make sure we got an email
+    if not email or not payload:
+        return _response(
+            False,
+            "Missing email",
+            error = {"code": "BAD_REQUEST"}
+        )
+
+    # try to get the user
+    user = None
+    user = find_user_by_email(email)
+
+    # Check that we found a user
+    if not user:
+        return _response(
+            False,
+            "User not found",
+            error = {"code": "NOT_FOUND"}
+        )
+
+    # Validate the payload
+    p = dict(payload or {})
+    err = _validate_profile_payload(p)
+
+    # If the payload is invalid return why
+    if err:
+        return _response(
+            False,
+            err,
+            error={"code": "BAD_REQUEST"}
+        )
+
+    # Update the values, income, location, preferred_currency
+    scalars = {k: p[k] for k in ("income","location","preferred_currency") if k in p}
+    if scalars:
+        print(scalars)
+        update_user_fields(user["id"], scalars)
+
+    # Replace strategies if provided
+    strategies = None
+    if "liked_strategies" in p:
+        strategies = replace_liked_strategies(user["id"], p["liked_strategies"])
+
+    # Create the data to return
+    data = {
+        "id": user["id"],
+        "username": user["username"],
+        "updated": list(scalars.keys())
+    }
+    if strategies is not None:
+        data["liked_strategies_count"] = strategies
+        data["updated"] = "strategies"
+
+    return _response(
+        True,
+        "Profile Updated",
+        data = data,
+    )
+
+def _validate_profile_payload(p: Dict[str, Any]) -> Optional[str]:
+    # Basic field checks; keep it simple for now
+    if "income" in p:
+        try:
+            inc = float(p["income"])
+            if inc < 0:
+                return "income must be >= 0"
+        except (TypeError, ValueError):
+            return "income must be numeric"
+    if "preferred_currency" in p:
+        cur = str(p["preferred_currency"]).strip().upper()
+        if len(cur) != 3 or not cur.isalpha():
+            return "preferred_currency must be a 3-letter code"
+        p["preferred_currency"] = cur
+    if "location" in p:
+        if p["location"] is not None and len(str(p["location"])) > 100:
+            return "location too long"
+    if "liked_strategies" in p:
+        if not isinstance(p["liked_strategies"], list):
+            return "liked_strategies must be a list"
+
+    return None
