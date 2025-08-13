@@ -8,7 +8,25 @@ def register_user():
     data = request.get_json()
     try:
         result = create_user(data.get("username"), data.get("email"), data.get("password"))
-        return jsonify(result), 201
+
+        if (result["success"]):
+
+            response = jsonify(result)
+            response.status_code = 200
+            return response
+
+        if (result["error"].get("code") == "Duplicate account"):
+
+            response = jsonify(result)
+            response.status_code = 409
+            return response
+        else:
+
+            response = jsonify(result)
+            response.status_code = 400
+            return response
+
+    # outlier errors
     except ValueError as ve:
         return jsonify({"error": str(ve)}), 400
     except Exception as e:
