@@ -1,9 +1,10 @@
 import styles from "./gradient-button.module.css";
+import { Link } from "react-router-dom";
 
-export default function GradientButton({ href = "#", children }) {
+export default function GradientButton({ to, children, ...rest }) {
     return (
-        <a href={href} className={styles.cta}>
+        <Link className={styles.cta} to={to} {...rest}>
             {children}
-        </a>
+        </Link>
     );
 }
