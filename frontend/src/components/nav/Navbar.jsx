@@ -48,9 +48,8 @@ export default function Navbar() {
     const [mobileOpen, setMobileOpen] = useState(false);
 
     const product = [
-        { label: "Overview", to: "/product" },
-        { label: "Backtesting", to: "/product/backtesting", desc: "Prototype strategies safely" },
-        { label: "Automation", to: "/product/automation", desc: "Deploy bots & alerts" },
+        { label: "Strategies Overview", to: "/strategies" },
+        { label: "Test Strategies", to: "/strategies/dashboard", desc: "Prototype strategies safely" },
     ];
 
     const learn = [
