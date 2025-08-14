@@ -2,6 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 import styles from "./strategy-workspace.module.css";
 import { STRATEGIES, CATEGORIES } from "../data/strategyRegistry";
 import { useAuth } from "../context/AuthContext";
+import MiniChart from "../components/ui/MiniChart.jsx";
+import ChartToolbar from "../components/ui/ChartToolBar.jsx";
+import { getPrices } from "../hooks/StockDataHook.jsx";
 
 export default function StrategyWorkspace() {
     const { user } = useAuth();
@@ -18,12 +21,25 @@ export default function StrategyWorkspace() {
     const [paramsByKey, setParamsByKey] = useState({});
     const [invested, setInvested] = useState(10000);
 
+    // Information to get the stock Data (from backend)
+    const [symbol, setSymbol] = useState("AMZN");
+    const [timeframe, setTimeFrame] = useState("1d");
+    const [rawDaily, setRawDaily] = useState([]);
+    const [loadingPx, setLoadingPx] = useState(false);
+    const [pxErr, setPxErr] = useState("");
+
+    // chart controls (Fidelity-like)
+    const [range, setRange] = useState("1Y");
+    const [freq, setFreq] = useState("1d");
+    const [start, setStart] = useState("");
+    const [end, setEnd] = useState("");
+
     const selected = useMemo(
         () => STRATEGIES.find(s => s.key === selectedKey),
         [selectedKey]
     );
 
-    // initialize defaults for a strategy the first time it’s selected
+    // init defaults per strategy
     useEffect(() => {
         if (!selected) return;
         if (!paramsByKey[selected.key]) {
@@ -36,15 +52,81 @@ export default function StrategyWorkspace() {
 
     const params = paramsByKey[selected?.key] || {};
 
-    // series + signals + equity (dummy for now)
-    const series = useMemo(() => generateSeries(180), []);
+    // ------------------------- GET STOCK DATA FROM BACKEND DATABASE --------------------------
+    // ------------------------- CALL FUNCTION IN StockDataHook.jsx ----------------------------
+    useEffect(() => {
+        // In the worst case we may need to abort
+        let abort = false;
+        // What happens when the system is loading the stock data
+        async function load() {
+
+            // Try to load in the data
+            try {
+
+                // We are loading and there is no error yet
+                setLoadingPx(true);
+                setPxErr("");
+
+                if (!(symbol.trim() === "")) {
+                    // Get the stock data
+                    const data = await getPrices({symbol, timeframe});
+                    // map to chart stockData format: [{i, close}]
+                    const s = (data.prices || []).map((p, i) => ({
+                        i,
+                        date: new Date(p.ts),
+                        close: Number(p.close)
+                    }));
+
+                    // We can set the stock data now
+                    if (!abort) setRawDaily(s);
+                }
+            } catch (e) {
+                if (!abort) {
+                    setPxErr(e.message || "Failed to load prices");
+                    setRawDaily([]);
+                }
+            } finally {
+                if (!abort) setLoadingPx(false);
+            }
+        }
+
+        // Load the stock data in based on the method above.
+        load();
+        return () => { abort = true; };
+    }, [symbol, timeframe]);
+
+    // derive visible series by range + frequency (front-end)
+    const stockData = useMemo(() => {
+        if (!rawDaily.length) return [];
+
+        const first = rawDaily[0].date;
+        const last = rawDaily[rawDaily.length - 1].date;
+
+        let from = first, to = last;
+        if (range === "CUSTOM" && start && end) {
+            from = new Date(start); to = new Date(end);
+        } else {
+            from = rangeStartFromPreset(range, last, first);
+            to = last;
+        }
+
+        let sliced = rawDaily.filter(d => d.date >= from && d.date <= to);
+        if (freq === "1wk") sliced = aggregateByWeek(sliced);
+        if (freq === "1mo") sliced = aggregateByMonth(sliced);
+
+        return sliced.map((d, i) => ({ ...d, i }));
+    }, [rawDaily, range, start, end, freq]);
+
+    // Signals use the fetched stockData
     const signals = useMemo(
-        () => (selected ? selected.computeSignals(series, params) : []),
-        [selected, series, params]
+        () => (selected ? selected.computeSignals(stockData, params) : []),
+        [selected, stockData, params]
     );
+
+    // Equity from signals (unchanged)
     const result = useMemo(
-        () => backtestBuySell(series, signals, invested),
-        [series, signals, invested]
+        () => backtestBuySell(stockData, signals, invested),
+        [stockData, signals, invested]
     );
 
     const list = useMemo(() => {
@@ -61,7 +143,8 @@ export default function StrategyWorkspace() {
 
     return (
         <div className={styles.split}>
-            {/* Sidebar: categories + search + list */}
+
+            {/* Sidebar */}
             <aside className={styles.sidebar}>
                 <div className={styles.sideHeader}>
                     <h3 className={styles.sideTitle}>Strategies</h3>
@@ -100,15 +183,28 @@ export default function StrategyWorkspace() {
                 </div>
             </aside>
 
-            {/* Main: detail view changes per strategy */}
+            {/* Main Content */}
             <main className={styles.main}>
                 <div className={styles.card}>
+
                     {/* Header */}
                     <div className={styles.headerRow}>
                         <div>
                             <h2 className={styles.title}>{selected?.name}</h2>
                             <p className={styles.subtitle}>{selected?.summary}</p>
                         </div>
+
+                        {/* quick symbol input */}
+                        <div className={styles.kpiPill}>
+                            <input
+                                className={styles.kpiInput}
+                                value={symbol}
+                                onChange={(e) => setSymbol(e.target.value.toUpperCase())}
+                                aria-label="Symbol"
+                            />
+                            <span className={styles.kpiUnit}>Symbol</span>
+                        </div>
+
                         <div className={styles.kpiPill}>
                             Invested:&nbsp;
                             <input
@@ -123,9 +219,24 @@ export default function StrategyWorkspace() {
                         </div>
                     </div>
 
+                    <ChartToolbar
+                        range={range} setRange={setRange}
+                        freq={freq} setFreq={setFreq}
+                        start={start} setStart={setStart}
+                        end={end} setEnd={setEnd}
+                    />
+
                     {/* Chart */}
                     <div className={styles.chartWrap}>
-                        <MiniChart series={series} signals={signals} />
+                        {loadingPx ? (
+                            <div className={styles.textBodyMuted}>Loading prices...</div>
+                        ) : pxErr ? (
+                            <div className={styles.errorText}>{pxErr}</div>
+                        ) : stockData.length ? (
+                            <MiniChart series={stockData} signals={signals} />
+                        ) : (
+                            <div className={styles.textBodyMuted}>No Information About This Stock Was Found.</div>
+                        )}
                     </div>
 
                     {/* KPIs */}
@@ -171,7 +282,7 @@ export default function StrategyWorkspace() {
                             {selected?.description.map((t, i) => <li key={i}>{t}</li>)}
                         </ul>
                         <p className={styles.textBodyMuted}>
-                            Backend will supply real signals and stats per strategy; this UI updates automatically by registry entry.
+                            Backend supplies real prices; signals recalc live as you tweak parameters.
                         </p>
                     </div>
                 </div>
@@ -207,52 +318,49 @@ function ParamBox({ label, value, onChange, min=1, max=999, step=1 }) {
     );
 }
 
-/* ---------- chart + helpers (same as before) ---------- */
-function MiniChart({ series, signals, width = 900, height = 260, margin = 20 }) {
-    if (!series?.length) return null;
-    const x = (i) => margin + (i * (width - 2 * margin)) / (series.length - 1);
-    const minP = Math.min(...series.map(s => s.close));
-    const maxP = Math.max(...series.map(s => s.close));
-    const y = (p) => {
-        const top = margin, bottom = height - margin;
-        return bottom - ((p - minP) / (maxP - minP)) * (bottom - top);
+function rangeStartFromPreset(preset, last, first) {
+    const oneDay = 24*60*60*1000;
+    const map = {
+        "1D": 1, "5D": 5, "10D": 10,
+        "1M": 30, "3M": 90, "6M": 180,
+        "1Y": 365, "5Y": 365*5, "10Y": 365*10
     };
-    const d = series.map((p, i) => `${i ? "L" : "M"} ${x(i)} ${y(p.close)}`).join(" ");
-    return (
-        <svg className={styles.chart} viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Price chart">
-            <rect x="0" y="0" width={width} height={height} rx="12" className={styles.chartBg} />
-            <path d={d} className={styles.pricePath} fill="none" />
-            {signals.map((s, idx) => (
-                <g key={idx} transform={`translate(${x(s.index)}, ${y(series[s.index].close)})`}>
-                    <circle r="5" className={s.side === "buy" ? styles.buyDot : styles.sellDot} />
-                    <text y={s.side === "buy" ? -10 : 18} textAnchor="middle" className={styles.signalLabel}>
-                        {s.side === "buy" ? "Buy" : "Sell"}
-                    </text>
-                </g>
-            ))}
-        </svg>
-    );
+    if (preset === "MAX" || !map[preset]) return first;
+    const start = new Date(last.getTime() - map[preset]*oneDay);
+    return start < first ? first : start;
 }
 
-// demo series + backtest
-function generateSeries(n = 180) {
-    const arr = []; let price = 100;
-    for (let i = 0; i < n; i++) {
-        const drift = 0.05 * Math.sin(i / 7) + 0.03 * Math.cos(i / 13);
-        const noise = (Math.random() - 0.5) * 0.8;
-        price = Math.max(1, price + drift + noise);
-        arr.push({ i, close: Number(price.toFixed(2)) });
-    }
-    return arr;
+function aggregateByWeek(series) {
+    const key = (d) => {
+        const date = new Date(d.date);
+        const day = (date.getUTCDay() + 6) % 7;
+        const thurs = new Date(date); thurs.setUTCDate(date.getUTCDate() - day + 3);
+        const year = thurs.getUTCFullYear();
+        const week1 = new Date(Date.UTC(year,0,4));
+        const week = 1 + Math.round(((thurs - week1)/86400000 - 3) / 7);
+        return `${year}-W${week}`;
+    };
+    const map = new Map();
+    for (const d of series) map.set(key(d), d);
+    return Array.from(map.values()).sort((a,b) => a.date - b.date);
 }
+
+function aggregateByMonth(series) {
+    const key = (d) => `${d.date.getUTCFullYear()}-${d.date.getUTCMonth()+1}`;
+    const map = new Map();
+    for (const d of series) map.set(key(d), d);
+    return Array.from(map.values()).sort((a,b) => a.date - b.date);
+}
+
 function backtestBuySell(series, signals, initial = 10000) {
     let cash = initial, shares = 0, last = "sell", trades = 0, wins = 0, entry = null;
     for (const sig of signals) {
-        const price = series[sig.index].close;
+        const price = series[sig.index]?.close ?? 0;
         if (sig.side === "buy" && last === "sell") { shares = cash / price; cash = 0; last = "buy"; trades++; entry = price; }
         else if (sig.side === "sell" && last === "buy") { cash = shares * price; shares = 0; last = "sell"; if (entry!=null && price>entry) wins++; entry=null; }
     }
-    const final = cash + shares * series[series.length - 1].close;
+    const lastClose = series.length ? series[series.length - 1].close : 0;
+    const final = cash + shares * lastClose;
     return { finalEquity: Number(final.toFixed(2)), trades, wins };
 }
 function fmtMoney(n, currency = "USD") {

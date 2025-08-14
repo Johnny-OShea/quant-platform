@@ -1,0 +1,13 @@
+.chart { width: 100%; height: auto; display: block; }
+.chartBg { fill: #ffffff; stroke: #e9eef4; }
+
+.axis { stroke: #a9b7c6; stroke-width: 1; }
+.gridLine { stroke: #eef2f6; stroke-width: 1; }
+.gridLineLight { stroke: #f5f7fa; stroke-width: 1; }
+
+.axisLabel { fill: #6f7d8a; font-size: 10px; }
+
+.pricePath { stroke: #2aa8f2; stroke-width: 2; fill: none; }
+
+.buyMarker { fill: #17c964; }
+.sellMarker { fill: #f31260; }
