@@ -3,21 +3,6 @@ import pandas as pd
 from config import get_db_connection
 import json
 
-def fetch_prices_df(symbol: str, timeframe: str, start=None, end=None) -> pd.DataFrame:
-    conn = get_db_connection(); cur = conn.cursor()
-    try:
-        q = "SELECT ts, o, h, l, c, v FROM prices WHERE symbol=%s AND timeframe=%s"
-        args = [symbol, timeframe]
-        if start: q += " AND ts >= %s"; args.append(start)
-        if end:   q += " AND ts <= %s"; args.append(end)
-        q += " ORDER BY ts ASC"
-        cur.execute(q, tuple(args))
-        rows = cur.fetchall()
-        df = pd.DataFrame(rows, columns=["ts","open","high","low","close","volume"])
-        return df
-    finally:
-        cur.close(); conn.close()
-
 def get_signals_cache(strategy_key, symbol, timeframe, params_hash, start, end, data_version) -> Optional[Dict[str, Any]]:
     conn = get_db_connection(); cur = conn.cursor(dictionary=True)
     try:

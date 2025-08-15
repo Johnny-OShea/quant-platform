@@ -17,7 +17,7 @@ class SMACrossover(StrategyBase):
     param_defs = {
         "fast":   {"label":"Fast MA",   "default":12,  "min":2, "max":100, "step":1},
         "slow":   {"label":"Slow MA",   "default":26,  "min":5, "max":200, "step":1},
-        "signal": {"label":"Signal Len","default":9,   "min":2, "max":50,  "step":1} # UI parity
+        "signal": {"label":"Signal Len","default":9,   "min":2, "max":50,  "step":1}
     }
 
     # Describe the minimum and maximum MA's
